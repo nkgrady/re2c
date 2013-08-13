@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <string.h>
 
 #include "globals.h"
@@ -31,6 +32,7 @@ bool fFlag = false;
 bool FFlag = false;
 bool gFlag = false;
 bool iFlag = false;
+bool mFlag = false;
 bool rFlag = false;
 bool sFlag = false;
 bool tFlag = false;
@@ -117,6 +119,7 @@ static const mbo_opt_struct OPTIONS[] =
 	mbo_opt_struct('g', 0, "computed-gotos"),
 	mbo_opt_struct('h', 0, "help"),
 	mbo_opt_struct('i', 0, "no-debug-info"),
+	mbo_opt_struct('m', 0, "make"),
 	mbo_opt_struct('o', 1, "output"),
 	mbo_opt_struct('r', 0, "reusable"),
 	mbo_opt_struct('s', 0, "nested-ifs"),
@@ -162,6 +165,8 @@ static void usage()
 	"                        with gcc).\n"
 	"\n"
 	"-i     --no-debug-info  Do not generate '#line' info (usefull for versioning).\n"
+	"\n"
+	"-m     --make           Use make behavior; only build if input timestamp is newer.\n"
 	"\n"
 	"-o of  --output=of      Specify the output file (of) instead of stdout\n"
 	"\n"
@@ -261,6 +266,10 @@ int main(int argc, char *argv[])
 
 			case 'i':
 			iFlag = true;
+			break;
+
+			case 'm':
+			mFlag = true;
 			break;
 
 			case 'o':
@@ -390,6 +399,22 @@ int main(int argc, char *argv[])
 		return 2;
 	}
 
+	if (mFlag && outputFileName != 0 && !(sourceFileName[0] == '-' && sourceFileName[1] == '\0'))
+	{
+		struct stat istat;
+		struct stat ostat;
+
+		if (!stat(sourceFileName, &istat) &&
+			!stat(outputFileName, &ostat))
+		{
+			if (istat.st_mtime < ostat.st_mtime)
+			{
+				// The input file is older than the output; no need to generate.
+				return 0;
+			}
+		}
+	}
+
 	// set up the source stream
 	re2c::ifstream_lc source;
 
@@ -432,6 +457,7 @@ int main(int argc, char *argv[])
 		}
 		headerFileInfo = file_info(headerFileName, &header);
 	}
+
 	Scanner scanner(source, output);
 	sourceFileInfo = file_info(sourceFileName, &scanner);
 	outputFileInfo = file_info(outputFileName, &output);
