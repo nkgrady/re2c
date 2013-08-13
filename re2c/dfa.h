@@ -13,6 +13,9 @@ extern void prtCh(std::ostream&, uint, bool useTalx = true);
 extern void prtHex(std::ostream&, uint, bool useTalx = true);
 extern void prtChOrHex(std::ostream&, uint, bool useTalx = true);
 extern void printSpan(std::ostream&, uint, uint);
+#ifdef RE2CS
+extern void prtByte(std::ostream&, uint, bool useTalx = true);
+#endif
 
 class DFA;
 

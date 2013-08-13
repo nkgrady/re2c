@@ -14,9 +14,13 @@ void prtChOrHex(std::ostream& o, uint c, bool useTalx)
 
 	if ((oc < 256) && (isprint(oc) || isspace(oc)))
 	{
+#ifdef RE2CS
+		prtByte(o, c);
+#else
 		o << (DFlag ? '"' : '\'');
 		prtCh(o, c);
 		o << (DFlag ? '"' : '\'');
+#endif
 	}
 	else
 	{
@@ -157,6 +161,116 @@ void printSpan(std::ostream& o, uint lb, uint ub)
 
 	o << "]";
 }
+
+#ifdef RE2CS
+
+void prtQuoted(std::ostream& o, char* c, bool useTalx)
+{
+	o << (DFlag ? '"' : '\'');
+	o << c;
+	o << (DFlag ? '"' : '\'');
+}
+
+void prtByte(std::ostream& o, uint c, bool useTalx)
+{
+	int oc = (int)(re2c::wFlag || !useTalx ? c : re2c::talx[c]);
+
+	// We must cast each quoted char to a byte. Since C# characters are
+	// UTF-16 encoded, this only works for the range of Unicode which is
+	// valid ASCII (0-127).
+	switch (oc)
+	{
+		case '\'':
+		o << "(byte)";
+		prtQuoted(o, (DFlag ? "'" : "\\'"), useTalx);
+		break;
+
+		case '"':
+		o << "(byte)";
+		prtQuoted(o, (DFlag ? "\\\"" : "\""), useTalx);
+		break;
+
+		case '\n':
+		o << "(byte)";
+		prtQuoted(o, "\\n", useTalx);
+		break;
+
+		case '\t':
+		o << "(byte)";
+		prtQuoted(o, "\\t", useTalx);
+		break;
+
+		case '\v':
+		o << "(byte)";
+		prtQuoted(o, "\\v", useTalx);
+		break;
+
+		case '\b':
+		o << "(byte)";
+		prtQuoted(o, "\\b", useTalx);
+		break;
+
+		case '\r':
+		o << "(byte)";
+		prtQuoted(o, "\\r", useTalx);
+		break;
+
+		case '\f':
+		o << "(byte)";
+		prtQuoted(o, "\\f", useTalx);
+		break;
+
+		case '\a':
+		o << "(byte)";
+		prtQuoted(o, "\\a", useTalx);
+		break;
+
+		case '\\':
+		o << "(byte)";
+		prtQuoted(o, "\\\\", useTalx);
+		break;
+
+		default:
+
+		if ((oc < 128) && isprint(oc))
+		{
+			// BUGBUG: Doesn't handle EBCDIC
+			o << "(byte)";
+			char ch[2] = { (char)oc, '\0' };
+			prtQuoted(o, ch, useTalx);
+		}
+#if 0
+		else if ((oc < 256) && isprint(oc))
+		{
+			o <<  oc;
+		}
+#endif
+		else if (re2c::uFlag)
+		{
+			o << "0x"
+			  << hexCh(oc >> 20)
+			  << hexCh(oc >> 16)
+			  << hexCh(oc >> 12)
+			  << hexCh(oc >>  8)
+			  << hexCh(oc >>  4)
+			  << hexCh(oc);
+		}
+		else if (re2c::wFlag)
+		{
+			o << "0x"
+			  << hexCh(oc >> 12)
+			  << hexCh(oc >>  8)
+			  << hexCh(oc >>  4)
+			  << hexCh(oc);
+		}
+		else
+		{
+			o << '\\' << octCh(oc / 64) << octCh(oc / 8) << octCh(oc);
+		}
+	}
+}
+
+#endif /* RE2CS */
 
 uint Span::show(std::ostream &o, uint lb) const
 {

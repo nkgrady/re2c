@@ -371,7 +371,11 @@ void genGoTo(std::ostream &o, uint ind, const State *from, const State *to, bool
 
 	if (readCh && from->label + 1 != to->label)
 	{
+#ifdef RE2CS
+		o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[" << mapCodeName["YYCURSOR"] << "];\n";
+#else
 		o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*" << mapCodeName["YYCURSOR"] << ";\n";
+#endif
 		readCh = false;
 	}
 
@@ -384,7 +388,11 @@ void genIf(std::ostream &o, uint ind, const char *cmp, uint v, bool &readCh)
 	o << indent(ind) << "if (";
 	if (readCh)
 	{
+#ifdef RE2CS
+		o << "(" << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[" << mapCodeName["YYCURSOR"] << "])";
+#else
 		o << "(" << mapCodeName["yych"] << " = " << yychConversion << "*" << mapCodeName["YYCURSOR"] << ")";
+#endif
 		readCh = false;
 	}
 	else
@@ -449,11 +457,19 @@ static void need(std::ostream &o, uint ind, uint n, bool & readCh, bool bSetMark
 	{
 		if (bSetMarker)
 		{
+#ifdef RE2CS
+			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[(" << mapCodeName["YYMARKER"] << " = " << mapCodeName["YYCURSOR"] << ");\n";
+#else
 			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*(" << mapCodeName["YYMARKER"] << " = " << mapCodeName["YYCURSOR"] << ");\n";
+#endif
 		}
 		else
 		{
+#ifdef RE2CS
+			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[" << mapCodeName["YYCURSOR"] << "];\n";
+#else
 			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*" << mapCodeName["YYCURSOR"] << ";\n";
+#endif
 		}
 		readCh = false;
 	}
@@ -478,7 +494,11 @@ void Match::emit(std::ostream &o, uint ind, bool &readCh, const std::string&) co
 	}
 	else
 	{
+#ifdef RE2CS
+		o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[++" << mapCodeName["YYCURSOR"] << "];\n";
+#else
 		o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*++" << mapCodeName["YYCURSOR"] << ";\n";
+#endif
 		readCh = false;
 	}
 
@@ -502,7 +522,11 @@ void Enter::emit(std::ostream &o, uint ind, bool &readCh, const std::string&) co
 	else
 	{
 		/* we shouldn't need 'rule-following' protection here */
+#ifdef RE2CS
+		o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[++" << mapCodeName["YYCURSOR"] << "];\n";
+#else
 		o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*++" << mapCodeName["YYCURSOR"] << ";\n";
+#endif
 		if (vUsedLabels.count(label))
 		{
 			o << labelPrefix << label << ":\n";
@@ -526,7 +550,11 @@ void Initial::emit(std::ostream &o, uint ind, bool &readCh, const std::string&) 
 		}
 		else
 		{
+#ifdef RE2CS
+			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[++" << mapCodeName["YYCURSOR"] << "];\n";
+#else
 			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*++" << mapCodeName["YYCURSOR"] << ";\n";
+#endif
 		}
 	}
 
@@ -582,11 +610,19 @@ void Save::emit(std::ostream &o, uint ind, bool &readCh, const std::string&) con
 	{
 		if (bUsedYYMarker)
 		{
+#ifdef RE2CS
+			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[(" << mapCodeName["YYMARKER"] << " = ++" << mapCodeName["YYCURSOR"] << ")];\n";
+#else
 			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*(" << mapCodeName["YYMARKER"] << " = ++" << mapCodeName["YYCURSOR"] << ");\n";
+#endif
 		}
 		else
 		{
+#ifdef RE2CS
+			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[++" << mapCodeName["YYCURSOR"] << "];\n";
+#else
 			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*++" << mapCodeName["YYCURSOR"] << ";\n";
+#endif
 		}
 		readCh = false;
 	}
@@ -650,7 +686,11 @@ void Accept::emit(std::ostream &o, uint ind, bool &readCh, const std::string&) c
 
 		if (readCh) // shouldn't be necessary, but might become at some point
 		{
+#ifdef RE2CS
+			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[" << mapCodeName["YYCURSOR"] << "];\n";
+#else
 			o << indent(ind) << mapCodeName["yych"] << " = " << yychConversion << "*" << mapCodeName["YYCURSOR"] << ";\n";
+#endif
 			readCh = false;
 		}
 
@@ -906,7 +946,11 @@ void Go::genSwitch(std::ostream &o, uint ind, const State *from, const State *ne
 
 			if (readCh)
 			{
+#ifdef RE2CS
+				o << indent(ind) << "switch ((" << mapCodeName["yych"] << " = " << yychConversion << mapCodeName["YYBUFFER"] << "[" << mapCodeName["YYCURSOR"] << "])) {\n";
+#else
 				o << indent(ind) << "switch ((" << mapCodeName["yych"] << " = " << yychConversion << "*" << mapCodeName["YYCURSOR"] << ")) {\n";
+#endif
 				readCh = false;
 			}
 			else
@@ -1068,7 +1112,11 @@ void Go::genCpGoto(std::ostream &o, uint ind, const State *from, const State *ne
 	
 	if (readCh)
 	{
+#ifdef RE2CS
+		sYych = "(" + mapCodeName["yych"] + " = " + yychConversion + mapCodeName["YYBUFFER"] + "[" + mapCodeName["YYCURSOR"] + "])";
+#else
 		sYych = "(" + mapCodeName["yych"] + " = " + yychConversion + "*" + mapCodeName["YYCURSOR"] + ")";
+#endif
 	}
 	else
 	{
@@ -1186,7 +1234,11 @@ void Go::genGoto(std::ostream &o, uint ind, const State *from, const State *next
 					go.unmap(this, to);
 					if (readCh)
 					{
+#ifdef RE2CS
+						sYych = "(" + mapCodeName["yych"] + " = " + yychConversion + mapCodeName["YYBUFFER"] + "[" + mapCodeName["YYCURSOR"] + "])";
+#else
 						sYych = "(" + mapCodeName["yych"] + " = " + yychConversion + "*" + mapCodeName["YYCURSOR"] + ")";
+#endif
 					}
 					else
 					{
@@ -1769,11 +1821,19 @@ void DFA::emit(std::ostream &o, uint& ind, const RegExpMap* specMap, const std::
 		{
 			if (bEmitYYCh)
 			{
+#ifdef RE2CS
+				o << indent(ind) << "byte " << mapCodeName["yych"] << ";\n";
+#else
 				o << indent(ind) << mapCodeName["YYCTYPE"] << " " << mapCodeName["yych"] << ";\n";
+#endif
 			}
 			if (bUsedYYAccept)
 			{
+#ifdef RE2CS
+				o << indent(ind) << "int " << mapCodeName["yyaccept"] << " = 0;\n";
+#else
 				o << indent(ind) << "unsigned int " << mapCodeName["yyaccept"] << " = 0;\n";
+#endif
 			}
 		}
 		else
@@ -2063,7 +2123,11 @@ void genTypes(std::string& o, uint ind, const RegExpMap& specMap)
 
 void genHeader(std::ostream &o, uint ind, const RegExpMap& specMap)
 {
+#ifdef RE2CS
+	o << "/* Generated by re2cs " PACKAGE_VERSION;
+#else
 	o << "/* Generated by re2c " PACKAGE_VERSION;
+#endif
 	if (!bNoGenerationDate)
 	{
 		o << " on ";
@@ -2211,6 +2275,9 @@ void Scanner::config(const Str& cfg, const Str& val)
 		mapDefineKeys.insert("define:YYMARKER");
 		mapDefineKeys.insert("define:YYSETCONDITION");
 		mapDefineKeys.insert("define:YYSETSTATE");
+#ifdef RE2CS
+		mapDefineKeys.insert("define:YYBUFFER");
+#endif
 		mapLabelKeys.insert("label:yyFillLabel");
 		mapLabelKeys.insert("label:yyNext");
 	}
